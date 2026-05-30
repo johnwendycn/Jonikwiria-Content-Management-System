@@ -1,0 +1,119 @@
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ─── Environment & Secrets ────────────────────────────────────────────────────
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+database.sqlite
+
+# ─── Build & Distribution ─────────────────────────────────────────────────────
+dist/
+build/
+out/
+.expo/
+.expo-shared/
+web-build/
+*.tsbuildinfo
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── OS & Editor ──────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ─── IDEs & Editors ───────────────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# ─── Testing ──────────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+
+# ─── Package Manager Locks (keep only one) ────────────────────────────────────
+# Uncomment the one you are NOT using:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ─── Runtime & Cache ──────────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.node_repl_history
+
+# ─── Expo / React Native ──────────────────────────────────────────────────────
+.expo/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+android/
+ios/
+
+# ─── Certificates & Keys ──────────────────────────────────────────────────────
+*.pem
+*.crt
+*.cer
+*.der
+*.pfx
+*.keystore
+
+# ─── Temporary Files ──────────────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# ─── Optional: Diagnostic Outputs ─────────────────────────────────────────────
+diagnostic-report.*.json

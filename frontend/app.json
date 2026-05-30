@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "User Status CMS",
+    "slug": "jonikwiria-cms-frontend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
