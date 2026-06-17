@@ -1,6 +1,8 @@
 const { Op } = require('sequelize');
 const User = require('../models/user');
 const UserStatusType = require('../models/userStatusType');
+const UserRole = require('../models/userRole');
+const Role = require('../models/role');
 const { isPostgres } = require('../config/database');
 
 class UserService {
@@ -38,7 +40,12 @@ class UserService {
     const { count, rows } = await User.findAndCountAll({
       where: whereClause,
       include: [
-        { model: UserStatusType, as: 'statusType' }
+        { model: UserStatusType, as: 'statusType' },
+        {
+          model: UserRole,
+          as: 'userRoles',
+          include: [{ model: Role, as: 'role' }]
+        }
       ],
       order: orderArray,
       limit: parseInt(limit),
@@ -174,7 +181,44 @@ class UserService {
       }
     }
 
+    const oldStatus = user.preferences?.doctor_profile?.status;
+
     await user.update(data);
+
+    const newStatus = user.preferences?.doctor_profile?.status;
+    const isDoctor = user.preferences?.user_type === 'doctor';
+    if (isDoctor && oldStatus !== newStatus && newStatus) {
+      try {
+        const authServiceInstance = require('./authService');
+        let subject = '';
+        let html = '';
+        let text = '';
+        
+        if (newStatus === 'approved') {
+          subject = 'Your Doctor Application has been APPROVED! ⚕️';
+          text = `Hello ${user.display_name || 'Doctor'},\n\nWe are pleased to inform you that your professional medical credentials have been successfully verified. You now have full access to consult patients, schedule livestream events, and receive virtual consultation fees on Jonikwiria Telemedicine Hub!\n\nBest Regards,\nJonikwiria Team`;
+          html = `<p>Hello <strong>${user.display_name || 'Doctor'}</strong>,</p><p>We are pleased to inform you that your professional medical credentials have been successfully verified. You now have full access to consult patients, schedule livestream events, and receive virtual consultation fees on Jonikwiria Telemedicine Hub!</p><br/><p>Best Regards,<br/>Jonikwiria Team</p>`;
+        } else if (newStatus === 'rejected') {
+          subject = 'Update on Your Doctor Application ❌';
+          text = `Hello ${user.display_name || 'Doctor'},\n\nThank you for your application to join the Jonikwiria Telemedicine Hub. Unfortunately, after review, your application was not approved at this time.\n\nPlease log in to the portal to reapply or contact customer support for further information.\n\nBest Regards,\nJonikwiria Team`;
+          html = `<p>Hello <strong>${user.display_name || 'Doctor'}</strong>,</p><p>Thank you for your application to join the Jonikwiria Telemedicine Hub. Unfortunately, after review, your application was not approved at this time.</p><p>Please log in to the portal to reapply or contact customer support for further information.</p><br/><p>Best Regards,<br/>Jonikwiria Team</p>`;
+        }
+        
+        if (subject) {
+          authServiceInstance.sendEmail({
+            to: user.email,
+            subject,
+            text,
+            html
+          }).catch(err => {
+            console.error('Failed to send verification status email:', err);
+          });
+        }
+      } catch (emailErr) {
+        console.error('Error triggering verification status email notification:', emailErr);
+      }
+    }
+
     return await this.getById(id, true);
   }
 
