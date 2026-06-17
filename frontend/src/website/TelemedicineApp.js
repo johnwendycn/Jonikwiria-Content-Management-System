@@ -215,6 +215,8 @@ export default function TelemedicineApp({
             onNavigate={navigateTo}
             sessionToken={sessionToken}
             onLoginSuccess={onTelemedicineLoginSuccess}
+            subsystemData={subsystemData}
+            siteSettings={siteSettings}
           />
         );
       case 'doctor_rejected':

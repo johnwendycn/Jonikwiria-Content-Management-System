@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, useWindowDimensions, ActivityIndicator, Image } from 'react-native';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -8,13 +8,21 @@ export default function TelemedicineDoctorPendingScreen({
   currentUser, 
   onNavigate, 
   sessionToken, 
-  onLoginSuccess 
+  onLoginSuccess,
+  subsystemData,
+  siteSettings 
 }) {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
   const [loading, setLoading] = useState(false);
   const [notificationRequested, setNotificationRequested] = useState(false);
+
+  // Pull brand assets from database
+  const portalName = subsystemData?.name || 'Telemedicine Hub';
+  const portalSubtitle = subsystemData?.settings?.badge || '24/7 Virtual Consultation';
+  const doctorImage = subsystemData?.settings?.imageUrl || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&auto=format&fit=crop&q=80';
+  const portalDesc = subsystemData?.description || 'Skip the waiting rooms. Connect with a verified doctor in minutes right from your home or office. Secure, private, and convenient.';
 
   const handleBrowseAsPatient = async () => {
     setLoading(true);
@@ -73,19 +81,18 @@ export default function TelemedicineDoctorPendingScreen({
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      {/* Header Row */}
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={onLogout} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Verification Status</Text>
-        <View style={{ width: 60 }} />
-      </View>
-
+  const renderPendingCard = () => {
+    return (
       <View style={isMobile ? styles.card : styles.glassCardDesktop} className="telemed-card">
-        
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={onLogout} style={styles.backBtn}>
+            <Text style={styles.backBtnText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Verification Status</Text>
+          <View style={{ width: 60 }} />
+        </View>
+
         {/* Verification Status Icon */}
         <View style={styles.badgePulseContainer}>
           <View style={styles.iconCircle}>
@@ -157,6 +164,7 @@ export default function TelemedicineDoctorPendingScreen({
         <View style={styles.actionsBtnRow}>
           <TouchableOpacity 
             style={[styles.actionBtn, notificationRequested && styles.actionBtnDisabled]} 
+            className="doctor-apply-btn"
             onPress={handleNotifyMe}
             disabled={notificationRequested}
           >
@@ -173,41 +181,235 @@ export default function TelemedicineDoctorPendingScreen({
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {Platform.OS === 'web' && (
+        <style dangerouslySetInnerHTML={{__html: `
+          .doctor-apply-btn {
+            background: linear-gradient(135deg, #00d2ff 0%, #4facfe 100%) !important;
+            transition: all 0.25s ease;
+          }
+          .doctor-apply-btn:hover {
+            opacity: 0.95;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.45);
+            transform: translateY(-1px);
+          }
+          .telemed-card {
+            background: rgba(22, 21, 33, 0.8) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 210, 255, 0.15) !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 210, 255, 0.05);
+            transition: all 0.3s ease;
+          }
+          .telemed-card:hover {
+            border-color: rgba(0, 210, 255, 0.3) !important;
+            box-shadow: 0 10px 45px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 210, 255, 0.1);
+          }
+        `}} />
+      )}
+
+      {isMobile ? (
+        // Mobile layout
+        <ScrollView contentContainerStyle={styles.mobileContainer} keyboardShouldPersistTaps="handled">
+          <Image source={{ uri: doctorImage }} style={styles.bgImageFull} resizeMode="cover" />
+          <View style={styles.gradientOverlayFull} />
+          {renderPendingCard()}
+        </ScrollView>
+      ) : (
+        // Desktop split layout
+        <View style={styles.desktopContainer}>
+          {/* Left panel: imagery and branding */}
+          <View style={styles.leftSplit}>
+            <Image source={{ uri: doctorImage }} style={styles.splitImage} resizeMode="cover" />
+            <View style={styles.gradientOverlaySplit} />
+            <View style={styles.leftSplitContent}>
+              <Text style={styles.leftSplitMiniHeader}>⚡ {portalSubtitle.toUpperCase()}</Text>
+              <Text style={styles.leftSplitTitle}>{portalName}</Text>
+              <Text style={styles.leftSplitDesc}>{portalDesc}</Text>
+              <View style={styles.featureRow}>
+                <View style={styles.featureItem}>
+                  <Text style={styles.featureIcon}>🛡️</Text>
+                  <Text style={styles.featureText}>Secure Records</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Text style={styles.featureIcon}>🚀</Text>
+                  <Text style={styles.featureText}>Fast Diagnoses</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Text style={styles.featureIcon}>📄</Text>
+                  <Text style={styles.featureText}>E-Prescriptions</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Right panel: Card */}
+          <ScrollView contentContainerStyle={styles.rightSplit} keyboardShouldPersistTaps="handled">
+            {renderPendingCard()}
+          </ScrollView>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#0F0E17',
+    position: 'relative'
+  },
+  // Mobile layout styles
+  mobileContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#0F0E17'
+    padding: 24,
+    paddingVertical: 40,
+    minHeight: '100vh',
+    position: 'relative'
+  },
+  bgImageFull: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.35
+  },
+  gradientOverlayFull: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(15, 14, 23, 0.85)'
+  },
+  // Desktop layout styles
+  desktopContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    height: '100vh',
+    minHeight: 650
+  },
+  leftSplit: {
+    flex: 1.1,
+    position: 'relative',
+    justifyContent: 'flex-end',
+    padding: 60,
+    overflow: 'hidden'
+  },
+  splitImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.6
+  },
+  gradientOverlaySplit: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'linear-gradient(to top, #0F0E17 10%, rgba(15, 14, 23, 0.4) 100%)'
+  },
+  leftSplitContent: {
+    zIndex: 10,
+    maxWidth: 550
+  },
+  leftSplitMiniHeader: {
+    color: '#00d2ff',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 12
+  },
+  leftSplitTitle: {
+    color: '#FFFFF2',
+    fontSize: 34,
+    fontWeight: '800',
+    lineHeight: 42,
+    marginBottom: 16
+  },
+  leftSplitDesc: {
+    color: '#A8A4CE',
+    fontSize: 14.5,
+    lineHeight: 22,
+    marginBottom: 30
+  },
+  featureRow: {
+    flexDirection: 'row',
+    gap: 20
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  featureIcon: {
+    marginRight: 6,
+    fontSize: 14
+  },
+  featureText: {
+    color: '#FFFFF2',
+    fontSize: 12,
+    fontWeight: '600'
+  },
+  rightSplit: {
+    flex: 1,
+    backgroundColor: '#0A090E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255,255,255,0.03)'
+  },
+  glassCardDesktop: {
+    width: '100%',
+    maxWidth: 520,
+    borderRadius: 24,
+    paddingVertical: 40,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 210, 255, 0.15)'
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
-    maxWidth: 520,
-    marginBottom: 20,
-    paddingHorizontal: 10
+    marginBottom: 24,
+    width: '100%'
   },
   backBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     cursor: 'pointer'
   },
   backBtnText: {
     color: '#00d2ff',
-    fontSize: 14,
-    fontWeight: '700'
+    fontSize: 13.5,
+    fontWeight: '700',
   },
   headerTitle: {
     color: '#FFFFF2',
-    fontSize: 16,
-    fontWeight: '800'
+    fontSize: 15.5,
+    fontWeight: '800',
+    letterSpacing: 0.5
   },
   card: {
     width: '100%',
@@ -217,18 +419,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2C2B35',
     alignItems: 'center'
-  },
-  glassCardDesktop: {
-    width: '100%',
-    maxWidth: 520,
-    borderRadius: 24,
-    paddingVertical: 35,
-    paddingHorizontal: 35,
-    alignItems: 'center',
-    backgroundColor: 'rgba(20, 19, 29, 0.85)',
-    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 210, 255, 0.15)'
   },
   badgePulseContainer: {
     alignItems: 'center',
